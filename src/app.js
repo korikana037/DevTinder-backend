@@ -3,12 +3,18 @@ const  connectDb  = require('./config/database');
 const User = require('./models/user');
 const {validateSignUpData} = require('./utils/validations');
 const bcrypt = require('bcrypt');
+const validator = require('validator');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
+const {userAuth} = require('./middlewares/auth');
 
 
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 
+//signup api
 app.post('/signup', async (req, res) => {
     try {
         //validate the data
@@ -26,6 +32,44 @@ app.post('/signup', async (req, res) => {
         res.send('user added successfully!');
     }catch(error){
         res.status(400).send('error saving the user '+ error.message);
+    }
+});
+
+//login api
+app.post('/login', async(req, res) => {
+    try {
+        const {emailId, password} = req.body;
+        if(!validator.isEmail(emailId)){
+            throw new Error ('enter valid email'); 
+        }
+        const user = await User.findOne({emailId: emailId});
+        if(!user){
+            res.send('No user existed')
+        }
+        isPasswordValid = await bcrypt.compare(password, user.password);
+        if(isPasswordValid){
+
+            //create a jwt token
+            const token = await jwt.sign({_id:user._id}, "DevTinder@123");
+            //add the token to cookie and send the response back to user.
+            res.cookie('token', token);
+            res.send('login successful')
+        }else{
+            throw new Error("password invalid");
+        }
+
+    } catch (error) {
+        res.status(400).send('Error '+ error.message );        
+    }
+});
+
+//get profile api 
+app.get('/profile', userAuth,  async(req, res) => {
+    try{
+        const user = req.user;
+        res.send(user);
+    } catch (error) {
+        res.send('Error: '+ err.message);
     }
 });
 
