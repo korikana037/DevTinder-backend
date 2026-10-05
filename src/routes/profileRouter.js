@@ -28,6 +28,8 @@ profileRouter.patch('/edit', userAuth,  async (req, res) => {
         res.send('could not update the user '+ error.messgae)
     }
 })
+//chnage password - verify old password and create new password.
 
+//forget password - email authentication
 
 module.exports = profileRouter;

@@ -12,6 +12,7 @@ app.use(cookieParser());
 
 app.use('/auth', authRouter);
 app.use('/profile', profileRouter);
+app.use('/request', requestRouter);
 
 
 
